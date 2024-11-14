@@ -25,12 +25,14 @@ jobs:
 
       - name: install-swell
         run: |
-          # Make experiment directory
+          # Make temporary working directory
+          mkdir ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
+          # Make permanent experiment directory where failed tasks will be stored
           mkdir /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
           # Copy and source modules
-          cp ${GITHUB_WORKSPACE}/src/swell/deployment/platforms/nccs_discover/modules /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/
-          source /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/modules
-          pip install --prefix=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/swell -r ${GITHUB_WORKSPACE}/requirements.txt --no-cache-dir ${GITHUB_WORKSPACE}
+          cp ${GITHUB_WORKSPACE}/src/swell/deployment/platforms/nccs_discover/modules ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/
+          source ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/modules
+          pip install --prefix=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/swell -r ${GITHUB_WORKSPACE}/requirements.txt --no-cache-dir ${GITHUB_WORKSPACE}
           # Remove source code (needed to ensure nothing relies on the source)
 
   # Run ufo_testing workflow
@@ -45,14 +47,14 @@ jobs:
 
       - name: run-swell-ufo_testing
         run: |
-          CI_WORKSPACE=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          CI_WORKSPACE=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
           SUITE_NAME=ufo_testing
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
           EXPERIMENT_ID=swell-${SUITE_NAME}-${GITHUB_RUN_ID}
 
           mkdir -p $CI_WORKSPACE_JOB
 
-          source /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/modules
+          source ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/modules
 
           # Get python version
           PYVER=`python --version | awk '{print $2}' | awk -F. '{print $1"."$2}'`
@@ -81,8 +83,9 @@ jobs:
       - name: Fail hold for ufo_testing
         run: |
           SUITE_NAME=ufo_testing
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
-          mv $CI_WORKSPACE_JOB ${CI_WORKSPACE_JOB}_FAILED
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB_FAILED=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}_FAILED
+          cp $CI_WORKSPACE_JOB $CI_WORKSPACE_JOB_FAILED
                 - name: Copy cylc Logs
 
   # Run hofx workflow
@@ -97,14 +100,14 @@ jobs:
 
       - name: run-swell-hofx
         run: |
-          CI_WORKSPACE=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          CI_WORKSPACE=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
           SUITE_NAME=hofx
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
           EXPERIMENT_ID=swell-${SUITE_NAME}-${GITHUB_RUN_ID}
 
           mkdir -p $CI_WORKSPACE_JOB
 
-          source /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/modules
+          source ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/modules
 
           # Get python version
           PYVER=`python --version | awk '{print $2}' | awk -F. '{print $1"."$2}'`
@@ -133,8 +136,9 @@ jobs:
       - name: Fail hold for hofx
         run: |
           SUITE_NAME=hofx
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
-          mv $CI_WORKSPACE_JOB ${CI_WORKSPACE_JOB}_FAILED
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB_FAILED=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}_FAILED
+          cp $CI_WORKSPACE_JOB $CI_WORKSPACE_JOB_FAILED
 
   # Run 3dvar workflow
   # -----------------
@@ -148,14 +152,14 @@ jobs:
 
       - name: run-swell-3dvar
         run: |
-          CI_WORKSPACE=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          CI_WORKSPACE=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
           SUITE_NAME=3dvar
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
           EXPERIMENT_ID=swell-${SUITE_NAME}-${GITHUB_RUN_ID}
 
           mkdir -p $CI_WORKSPACE_JOB
 
-          source /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/modules
+          source ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/modules
 
           # Get python version
           PYVER=`python --version | awk '{print $2}' | awk -F. '{print $1"."$2}'`
@@ -184,8 +188,9 @@ jobs:
       - name: Fail hold for 3dvar
         run: |
           SUITE_NAME=3dvar
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
-          mv $CI_WORKSPACE_JOB ${CI_WORKSPACE_JOB}_FAILED
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB_FAILED=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}_FAILED
+          cp $CI_WORKSPACE_JOB $CI_WORKSPACE_JOB_FAILED
 
   # Run 3dvar_atmos workflow
   # -----------------
@@ -199,14 +204,14 @@ jobs:
 
       - name: run-swell-3dvar_atmos
         run: |
-          CI_WORKSPACE=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          CI_WORKSPACE=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
           SUITE_NAME=3dvar_atmos
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
           EXPERIMENT_ID=swell-${SUITE_NAME}-${GITHUB_RUN_ID}
 
           mkdir -p $CI_WORKSPACE_JOB
 
-          source /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/modules
+          source ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/modules
 
           # Get python version
           PYVER=`python --version | awk '{print $2}' | awk -F. '{print $1"."$2}'`
@@ -235,7 +240,7 @@ jobs:
       - name: Fail hold for 3dvar_atmos
         run: |
           SUITE_NAME=3dvar_atmos
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
 
   # Run 3dfgat_atmos workflow
   # -----------------
@@ -249,14 +254,14 @@ jobs:
 
       - name: run-swell-3dfgat_atmos
         run: |
-          CI_WORKSPACE=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          CI_WORKSPACE=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
           SUITE_NAME=3dfgat_atmos
-          CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
+          CI_WORKSPACE_JOB=${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
           EXPERIMENT_ID=swell-${SUITE_NAME}-${GITHUB_RUN_ID}
 
           mkdir -p $CI_WORKSPACE_JOB
 
-          source /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/modules
+          source ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}/modules
 
           # Get python version
           PYVER=`python --version | awk '{print $2}' | awk -F. '{print $1"."$2}'`
@@ -286,7 +291,8 @@ jobs:
         run: |
           SUITE_NAME=3dfgat_atmos
           CI_WORKSPACE_JOB=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}/${SUITE_NAME}
-          mv $CI_WORKSPACE_JOB ${CI_WORKSPACE_JOB}_FAILED
+          CI_WORKSPACE_JOB_FAILED=/discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          cp $CI_WORKSPACE_JOB $CI_WORKSPACE_JOB_FAILED
 
 # Perform all the clean up
 # ------------------------
@@ -299,9 +305,10 @@ jobs:
 
     steps:
 
-      - name: Remove the run directory
+      - name: Remove the run directories
         run: |
           rm -r -f /discover/nobackup/gmao_ci/swell/tier1/${GITHUB_RUN_ID}
+          rm -r -f ${TSE_TMPDIR}/tier1/${GITHUB_RUN_ID}
 
   swell-tier_1-clean_up_always:
 
